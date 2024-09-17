@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+        <script src="javascripts/jquery-linedtextarea.js"></script>
+        <link rel="stylesheet" type="text/css" href="stylesheets/jquery-linedtextarea.css">
+        <script type="text/javascript">
+
+            var convertBase = function (num, length, baseFrom, baseTo) {
+                var str = (parseInt(num, baseFrom) >>> 0).toString(baseTo);
+                if (str.length > length) {
+                    str = str.substring(str.length-length, str.length);
+
+                }
+                while (str.length < length) {
+                    str = "0" + str;
+                }
+                return str;
+            };
+
+            var generateBinaryArgs = function(args, lengths) {
+                for (var i = 0; i < lengths.length; i++) {
+                    args[i] = convertBase(args[i].replace("#", "").replace("r", ""), lengths[i], 10, 2);
+                }
+                return args;
+            }
+
+            var createHexInstr = function(binary) {
+                return convertBase(binary, 4, 2, 16).toUpperCase();
+            };
+
+            var functionMap = {
+                "add" : function(args) {
+                    if (args.length !== 3) {
+                        return "";
+                    }
+                    if (args[2].indexOf("#") !== -1) {
+                        args = generateBinaryArgs(args, [3,3,5]);
+                        return createHexInstr("0001" + args[0] + args[1] + "1" + args[2]);
+                    } else {
+                        args = generateBinaryArgs(args, [3,3,3]);
+                        return createHexInstr("0001" + args[0] + args[1] + "000" + args[2]);
+                    }
+                },
+                "and" : function(args){
+                    if (args.length !== 3) {
+                        return "";
+                    }
+                    if (args[2].indexOf("#") !== -1) {
+                        args = generateBinaryArgs(args, [3,3,5]);
+                        return createHexInstr("0101" + args[0] + args[1] + "1" + args[2]);
+                    } else {
+                        args = generateBinaryArgs(args, [3,3,3]);
+                        return createHexInstr("0101" + args[0] + args[1] + "000" + args[2]);
+                    }
+                },
+                "brn"  : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [9]);
+                    return createHexInstr("0000100" + args[0]);
+                },
+                "brz"  : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [9]);
+                    return createHexInstr("0000010" + args[0]);
+                },
+                "brp"  : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [9]);
+                    return createHexInstr("0000001" + args[0]);
+                },
+                "br"  : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [9]);
+                    return createHexInstr("0000111" + args[0]);
+                },
+                "brzp"  : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [9]);
+                    return createHexInstr("0000011" + args[0]);
+                },
+                "brnp"  : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [9]);
+                    return createHexInstr("0000101" + args[0]);
+                },
+                "brnz"  : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [9]);
+                    return createHexInstr("0000110" + args[0]);
+                },
+                "brnzp"  : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [9]);
+                    return createHexInstr("0000111" + args[0]);
+                },
+                "jmp" : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [3]);
+                    return createHexInstr("1100000" + args[0]+ "000000");
+                },
+                "ret" : function(args) {
+                    if (args.length !== 0) {
+                        return "";
+                    }
+                    return createHexInstr("1100000111000000");
+                },
+                "jsr" : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [11]);
+                    return createHexInstr("01001" + args[0]);
+                },
+                "jsrr" : function(args) {
+                    if (args.length !== 1) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [3]);
+                    return createHexInstr("0100000" + args[0] + "000000");
+                },
+                "ld" : function(args) {
+                    if (args.length !== 2) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [3, 9]);
+                    return createHexInstr("0010" + args[0] + args[1]);
+                },
+                "ldi" : function(args) {
+                    if (args.length !== 2) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [3, 9]);
+                    return createHexInstr("1010" + args[0] + args[1]);
+                },
+                "ldr" : function(args) {
+                    if (args.length !== 3) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [3, 3, 6]);
+                    return createHexInstr("0110" + args[0] + args[1] + args[2]);
+                },
+                "lea" : function(args) {
+                    if (args.length !== 2) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [3, 9]);
+                    return createHexInstr("1110" + args[0] + args[1]);
+                },
+                "not" : function(args) {
+                    if (args.length !== 2) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [3, 3]);
+                    return createHexInstr("1001" + args[0] + args[1] + "111111");
+                },
+                "st" : function(args) {
+                    if (args.length !== 2) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [3, 9]);
+                    return createHexInstr("0011" + args[0] + args[1]);
+                },
+                "sti" : function(args) {
+                    if (args.length !== 2) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [3, 9]);
+                    return createHexInstr("1011" + args[0] + args[1]);
+                },
+                "str" : function(args) {
+                    if (args.length !== 3) {
+                        return "";
+                    }
+                    args = generateBinaryArgs(args, [3, 3, 6]);
+                    return createHexInstr("0111" + args[0] + args[1] + args[2]);
+                },
+                "halt" : function(args) {
+                    if (args.length !== 0) {
+                        return "";
+                    }
+                    return createHexInstr("1111000000000000");
+                }
+            };
+
+            var assembleInstr = function(inst) {
+                inst = inst.split(/[\s,]+/);
+                if (inst.length === 1 && inst[0].match(/^([0-9]|[a-f]){4}$/) !== null) {
+                    return inst[0].toUpperCase();
+                }
+                var func = functionMap[inst[0]];
+                if (func === undefined)
+                    return "";
+                else
+                    return func(inst.slice(1));
+            };
+
+            var maphex = function(stream, map) {
+                var lineno = 0;
+                var numinstr = 0;
+                var lines = stream.trim().split("\n");
+                var output = "";
+                for (var i = 0; i < lines.length; i++) {
+                    if (lines[i] !== "") {
+                        var instr = assembleInstr(lines[i].trim().toLowerCase());
+                        if (instr == "") {
+                            alert("Error on Line " + lineno + "! Halting Assembly.");
+                            return output;
+                        }
+                        output += map(instr, numinstr) + "   // " + lines[i].trim() + "\n";
+                        numinstr++;
+                    }
+                    lineno++;
+                }
+
+                return output;
+            }
+
+            var assemble = function(stream) {
+                var str = maphex(stream, function(instr, n) { return instr; });
+                for (var numinstr = str.trim().split("\n").length; numinstr < 128; numinstr++) {
+                    str += "0000" + "\n";
+                }
+                return str;
+            };
+
+            var toVerilog = function(stream) {
+                var str = maphex(stream, function(instr, n) {
+                    return "assign mem_init[" + n + "] = 16'h" + instr.toUpperCase() + ";";
+                });
+                var numinstr = str.trim().split("\n").length;
+                str = "wire [DATA_WIDTH-1:0] mem_init[PROGRAM_LENGTH-1:0];\n\n" + str;
+                str = "localparam PROGRAM_LENGTH = " + numinstr + ";\n" + str;
+                return str;
+            };
+
+            var download = function(filename, text) {
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+
+                element.click();
+
+                document.body.removeChild(element);
+            };
+
+            $(document).ready(function() {
+                $(".lined").linedtextarea();
+                $('#assembleButton').click(function() {
+                    $('#verilogText').val(assemble($('#assembly').val()));
+                });
+                $('#convertButton').click(function() {
+                    $('#verilogText').val(toVerilog($('#assembly').val()));
+                });
+                $('#downAsmButton').click(function() {
+                    download($('#asmfilename').val(), $('#assembly').val());
+                });
+                $('#downResButton').click(function() {
+                    download($('#resfilename').val(), $('#verilogText').val());
+                });
+            });
+
+
+        </script>
+        <style>
+            #mainConvertArea {
+                layout: relative;
+            }
+            .linedwrap {
+                vertical-align: top;
+                display: inline-block;
+                float: left;
+            }
+            .buttons {
+                vertical-align: top;
+                display: inline-block;
+                float: left;
+                width: 150px;
+                margin: 10px;
+                text-align: center;
+            }
+            .textboxes1 {
+                vertical-align: top;
+                display: inline-block;
+                float: left;
+                width: 200px;
+                margin: 10px;
+                text-align: center;
+            }
+            .textboxes2 {
+                vertical-align: top;
+                display: inline-block;
+                float: left;
+                width: 320px;
+                margin: 10px;
+                text-align: center;
+            }
+            .convertButtons {
+                text-align: left;
+                width: 150px;
+                vertical-align: top;
+                display: block;
+                margin-left: auto;
+                margin-right:auto;
+                margin-bottom: 10px;
+            }
+            .downloadButtons {
+                text-align: left;
+                width: 150px;
+                vertical-align: top;
+                display: block;
+                margin-left: auto;
+                margin-right:auto;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">LC3 Assembler</h3>
+            </div>
+            <div class="panel-body">
+                <div class="textboxes1">
+                    <input id="asmfilename" type="text" class="form-control" placeholder="ASM Filename">
+                    <textarea id="assembly" class="lined" rows="30" cols="30" placeholder="Assembly"></textarea>
+                </div>
+                <div class="buttons">
+                    <div class="convertButtons btn-group-vertical" role="group">
+                        <button class="btn btn-default" id="assembleButton">To Mem Image >>></button>
+                        <button class="btn btn-default" id="convertButton">To Verilog >>></button>
+
+                    </div>
+
+                    <div class="downloadButtons btn-group-vertical" role="group">
+                        <button class="btn btn-default" id="downAsmButton">Download ASM</button>
+                        <button class="btn btn-default" id="downResButton">Download Result</button>
+
+                    </div>
+                </div>
+                <div class="textboxes2">
+                    <input id="resfilename" type="text" class="form-control" placeholder="Output Filename">
+                    <textarea id="verilogText" class="lined" rows="30" cols="50" placeholder="Output"></textarea>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

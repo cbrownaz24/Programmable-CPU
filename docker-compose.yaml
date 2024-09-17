@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+
+  # Run gtkwave as a web server exposed on the port 8090
+  ece206-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - BROADWAY=10
+    ports:
+      - 8090:8090
+    volumes:
+      - .:/workspace
+

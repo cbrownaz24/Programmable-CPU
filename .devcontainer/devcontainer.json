@@ -1,0 +1,43 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.194.0/containers/docker-existing-dockerfile
+{
+	"name": "ECE206",
+	// Define compose set-up.
+	"dockerComposeFile": "../docker-compose.yaml",
+	"service": "ece206-dev",
+	"workspaceFolder": "/workspace",
+	"shutdownAction": "stopCompose",
+	// Set *default* container specific settings.json values on container create.
+	"settings": {
+		// Set Up Terminal.
+		"terminal.integrated.defaultProfile.linux": "bash",
+		"terminal.integrated.profiles.linux": {
+			"bash": {
+				"path": "bash"
+			}
+		},
+		// Enable Bracket Colorizing.
+		"editor.bracketPairColorization.enabled": true,
+		"editor.guides.bracketPairs": "active",
+		// Set-up Delinter.
+		"verilog.linting.linter": "iverilog",
+		"verilog.linting.iverilog.arguments": "-Wall -Wno-timescale",
+		"verilog.linting.iverilog.runAtFileLocation": false,
+		// Set Line Length
+		"editor.rulers": [
+			100
+		],
+		"rewrap.autoWrap.enabled": true,
+		"rewrap.wrappingColumn": 100
+	},
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"mshr-h.veriloghdl",
+		"ms-vsliveshare.vsliveshare-pack",
+		"stkb.rewrap"
+	],
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [
+		"8090:8090"
+	]
+}
